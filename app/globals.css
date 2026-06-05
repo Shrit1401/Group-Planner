@@ -1,26 +1,1220 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg:          #f7f4ee;   /* warm paper */
+  --surface:     #ffffff;
+  --surface-2:   #f0ece4;   /* slightly darker paper */
+  --border:      #1a1a1a;   /* ink black */
+  --border-mid:  #555555;
+  --border-light: rgba(0,0,0,0.12);
+  --text:        #1a1a1a;
+  --muted:       #666666;
+  --muted-2:     #aaaaaa;
+  --accent:      #16a34a;   /* green marker */
+  --accent-hover: #15803d;
+  --accent-light: #dcfce7;  /* light green fill */
+  --accent-text:  #166534;
+  --ink:         rgba(0,0,0,0.07); /* graph paper lines */
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+input,
+textarea,
+select {
+  font-family: var(--font-caveat), cursive;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: color-mix(in srgb, var(--muted) 72%, transparent);
+  font-family: var(--font-caveat), cursive;
+}
+
+::selection { background: rgba(22, 163, 74, 0.22); }
+
+::-webkit-scrollbar { width: 3px; height: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 99px; }
+
+/* ── Caveat handwriting font ── */
+.font-doodle {
+  font-family: var(--font-caveat), cursive;
+  letter-spacing: 0;
+}
+
+/* ── Paper texture with faint ruled lines ── */
+.bg-paper {
+  background-color: var(--bg);
+  background-image: linear-gradient(var(--ink) 1px, transparent 1px);
+  background-size: 100% 28px;
+}
+
+/* ── Graph-paper variant (for grids) ── */
+.bg-grid {
+  background-image:
+    linear-gradient(var(--ink) 1px, transparent 1px),
+    linear-gradient(90deg, var(--ink) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* ── Doodle card: white with thick ink border + stamp shadow ── */
+.doodle-card {
+  position: relative;
+  background: var(--surface);
+  border: 2.5px solid var(--border);
+  border-radius: 16px 22px 18px 14px;
+  box-shadow: 4px 4px 0 var(--border);
+  animation: liveInkOutline 1.35s steps(3, end) infinite;
+}
+.doodle-card-sm {
+  position: relative;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 12px 16px 14px 10px;
+  box-shadow: 3px 3px 0 var(--border);
+  animation: liveInkOutline 1.45s steps(3, end) infinite;
+}
+.doodle-card::before,
+.doodle-card-sm::before {
+  content: "";
+  position: absolute;
+  inset: -5px -4px -4px -5px;
+  border: 1.5px solid rgba(26,26,26,0.22);
+  border-radius: inherit;
+  pointer-events: none;
+  animation: sketchGhost 1.2s steps(3, end) infinite;
+}
+
+/* ── Stamp button ── */
+.btn-stamp {
+  position: relative;
+  border: 2.5px solid var(--border);
+  border-radius: 14px 20px 16px 12px;
+  box-shadow: 4px 4px 0 var(--border);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  animation: handJitter 1.7s steps(3, end) infinite;
+}
+.btn-stamp:hover:not(:disabled) {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--border);
+}
+.btn-stamp:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--border);
+}
+
+/* ── Shine on green CTA ── */
+@keyframes shine {
+  from { transform: translateX(-100%) skewX(-12deg); }
+  to   { transform: translateX(200%) skewX(-12deg); }
+}
+.btn-shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+  transform: translateX(-100%) skewX(-12deg);
+}
+.btn-shine:hover::after { animation: shine 0.55s ease; }
+
+.handdrawn-live {
+  animation: liveInkOutline 1.28s steps(3, end) infinite;
+}
+
+.handdrawn-live > button:first-child {
+  position: relative;
+  overflow: hidden;
+}
+
+.handdrawn-live > button:first-child::after {
+  content: "";
+  position: absolute;
+  inset: 8px 10px;
+  pointer-events: none;
+  border: 2px dashed rgba(22,163,74,0.26);
+  border-radius: 12px 18px 14px 10px;
+  animation: sketchGhost 1.05s steps(3, end) infinite;
+}
+
+.handdrawn-live button:not(:disabled) {
+  animation: handJitter 1.55s steps(3, end) infinite;
+}
+
+.doodle-locked-banner,
+.doodle-result-card,
+.doodle-slots-panel {
+  position: relative;
+  overflow: hidden;
+  animation: liveInkOutline 1.55s steps(3, end) infinite;
+}
+
+.doodle-locked-banner::before,
+.doodle-result-card::before,
+.doodle-slots-panel::before {
+  content: "";
+  position: absolute;
+  inset: -6px -5px -5px -6px;
+  border: 1.5px solid rgba(26,26,26,0.2);
+  border-radius: inherit;
+  pointer-events: none;
+  animation: sketchGhost 1.35s steps(3, end) infinite;
+}
+
+.doodle-locked-banner::after,
+.doodle-result-card::after,
+.doodle-slots-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(96deg, transparent 0 18px, rgba(26,26,26,0.026) 19px 20px, transparent 21px 36px),
+    repeating-linear-gradient(-8deg, transparent 0 26px, rgba(255,255,255,0.34) 27px 28px, transparent 29px 46px);
+  mix-blend-mode: multiply;
+  animation: pencilScratch 1.25s steps(3, end) infinite;
+}
+
+.doodle-locked-banner > *,
+.doodle-result-card > *,
+.doodle-slots-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+.results-main {
+  contain: layout paint;
+}
+
+.day-slots-grid {
+  align-items: stretch;
+}
+
+.doodle-slots-panel {
+  max-height: min(72vh, 760px);
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.day-slots-grid > div:nth-child(-n + 1000) {
+  min-width: 0;
+}
+
+.day-slots-grid > div:nth-child(n + 2):nth-child(-n + 80) {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
+  backdrop-filter: blur(4px);
+}
+
+.day-slots-time {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
+}
+
+.doodle-slot-cell {
+  position: relative;
+  min-width: 0;
+  border-radius: 8px 10px 8px 7px;
+  animation:
+    sketchIn 0.55s cubic-bezier(0.22,1,0.36,1) both,
+    softCellBoil 1.85s steps(3, end) infinite;
+  animation-delay: var(--doodle-delay, 0s), calc(var(--doodle-delay, 0s) + 0.4s);
+}
+
+.doodle-slot-cell::after {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border-radius: inherit;
+  border: 1px solid rgba(255,255,255,0.24);
+  pointer-events: none;
+  animation: sketchGhost 1.3s steps(3, end) infinite;
+}
+
+.doodle-slot-cell[title="Outside time window"] {
+  opacity: 0.22;
+}
+
+@keyframes softCellBoil {
+  0%, 100% { transform: translate(0, 0) scale(1); filter: saturate(1); }
+  33%      { transform: translate(0.6px, -0.4px) scale(1.01); filter: saturate(1.04); }
+  66%      { transform: translate(-0.4px, 0.5px) scale(0.992); filter: saturate(0.98); }
+}
+
+.doodle-note,
+.doodle-date-note,
+.doodle-action,
+.ink-panel,
+.paper-panel,
+.soft-button,
+.save-dock,
+.planner-calendar-board,
+input,
+textarea,
+select {
+  animation: subtleLineBoil 1.65s steps(3, end) infinite;
+}
+
+.doodle-note,
+.doodle-date-note,
+.doodle-action,
+.ink-panel,
+.paper-panel,
+.planner-calendar-board {
+  position: relative;
+}
+
+.doodle-note::before,
+.doodle-date-note::before,
+.doodle-action::before,
+.ink-panel::before,
+.paper-panel::before,
+.planner-calendar-board::before {
+  animation-duration: 1.4s;
+  animation-timing-function: steps(3, end);
+  animation-iteration-count: infinite;
+}
+
+/* ── Entrance animation ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.anim-fade-up { animation: fadeUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.anim-delay-1 { animation-delay: 0.07s; }
+.anim-delay-2 { animation-delay: 0.14s; }
+.anim-delay-3 { animation-delay: 0.21s; }
+.anim-delay-4 { animation-delay: 0.28s; }
+.anim-delay-5 { animation-delay: 0.35s; }
+
+/* ── Doodle sticker animations ── */
+@keyframes doodleFloat {
+  0%, 100% { transform: translateY(0px) rotate(var(--rot, 0deg)); }
+  50%       { transform: translateY(-12px) rotate(calc(var(--rot, 0deg) + 3deg)); }
+}
+@keyframes doodleWobble {
+  0%, 100% { transform: rotate(var(--rot, 0deg)) scale(1); }
+  25%       { transform: rotate(calc(var(--rot, 0deg) - 4deg)) scale(1.03); }
+  75%       { transform: rotate(calc(var(--rot, 0deg) + 4deg)) scale(0.97); }
+}
+@keyframes doodleSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes doodlePop {
+  0%   { transform: scale(0) rotate(var(--rot, 0deg)); opacity: 0; }
+  65%  { transform: scale(1.12) rotate(var(--rot, 0deg)); opacity: 1; }
+  100% { transform: scale(1) rotate(var(--rot, 0deg)); opacity: 1; }
+}
+@keyframes doodleDraw {
+  from { stroke-dashoffset: 400; opacity: 0; }
+  15%  { opacity: 1; }
+  to   { stroke-dashoffset: 0; opacity: 1; }
+}
+@keyframes sketchIn {
+  0%   { opacity: 0; clip-path: inset(0 100% 0 0); transform: translateY(8px) rotate(-0.8deg); }
+  65%  { opacity: 1; clip-path: inset(0 0 0 0); transform: translateY(-1px) rotate(0.25deg); }
+  100% { opacity: 1; clip-path: inset(0 0 0 0); transform: translateY(0) rotate(0deg); }
+}
+@keyframes inkPop {
+  0%   { opacity: 0; transform: scale(0.35) rotate(-18deg); }
+  58%  { opacity: 1; transform: scale(1.16) rotate(7deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+@keyframes handJitter {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  20%      { transform: translate(-1px, 0) rotate(-0.35deg); }
+  45%      { transform: translate(1px, -1px) rotate(0.28deg); }
+  70%      { transform: translate(0, 1px) rotate(-0.18deg); }
+}
+@keyframes liveInkOutline {
+  0%, 100% {
+    transform: translate(0, 0) rotate(-0.08deg);
+    box-shadow: 4px 4px 0 var(--border), inset 0 0 0 0 rgba(26,26,26,0.04);
+    filter: contrast(1);
+  }
+  25% {
+    transform: translate(-1px, 0.5px) rotate(0.18deg);
+    box-shadow: 5px 3px 0 var(--border), inset 1px 0 0 rgba(26,26,26,0.06);
+    filter: contrast(1.06);
+  }
+  50% {
+    transform: translate(0.8px, -0.7px) rotate(-0.22deg);
+    box-shadow: 3px 5px 0 var(--border), inset -1px 1px 0 rgba(26,26,26,0.05);
+    filter: contrast(0.98);
+  }
+  75% {
+    transform: translate(-0.4px, -0.2px) rotate(0.12deg);
+    box-shadow: 5px 5px 0 var(--border), inset 0 -1px 0 rgba(26,26,26,0.06);
+    filter: contrast(1.04);
+  }
+}
+@keyframes sketchGhost {
+  0%, 100% { transform: translate(-2px, -1px) rotate(-0.7deg); opacity: 0.22; }
+  33%      { transform: translate(1px, -2px) rotate(0.45deg); opacity: 0.14; }
+  66%      { transform: translate(-1px, 1px) rotate(-0.25deg); opacity: 0.28; }
+}
+@keyframes subtleLineBoil {
+  0%, 100% { filter: contrast(1); }
+  33%      { filter: contrast(1.035); }
+  66%      { filter: contrast(0.985); }
+}
+@keyframes lineBoil {
+  0%, 100% { transform: translate(0, 0) rotate(-0.18deg); border-radius: 10px 13px 11px 9px; }
+  16%      { transform: translate(0.45px, -0.35px) rotate(0.12deg); border-radius: 12px 10px 14px 8px; }
+  33%      { transform: translate(-0.35px, 0.45px) rotate(-0.28deg); border-radius: 9px 15px 10px 12px; }
+  50%      { transform: translate(0.25px, 0.25px) rotate(0.22deg); border-radius: 13px 11px 12px 10px; }
+  66%      { transform: translate(-0.45px, -0.2px) rotate(-0.08deg); border-radius: 11px 14px 9px 13px; }
+  83%      { transform: translate(0.3px, 0.4px) rotate(0.18deg); border-radius: 10px 12px 14px 9px; }
+}
+@keyframes roughPass {
+  0%   { opacity: 0; clip-path: inset(0 100% 0 0); transform: translate(-2px, -1px) rotate(-0.7deg); }
+  28%  { opacity: 0.28; clip-path: inset(0 62% 0 0); }
+  62%  { opacity: 0.18; clip-path: inset(0 16% 0 0); }
+  100% { opacity: 0.16; clip-path: inset(0 0 0 0); transform: translate(1px, 0) rotate(0.35deg); }
+}
+@keyframes pencilScratch {
+  0%   { background-position: 0 0, 0 0; opacity: 0.5; }
+  25%  { background-position: 3px -1px, -2px 1px; opacity: 0.72; }
+  50%  { background-position: -1px 2px, 2px -2px; opacity: 0.58; }
+  75%  { background-position: 2px 1px, -1px -1px; opacity: 0.68; }
+  100% { background-position: 0 0, 0 0; opacity: 0.5; }
+}
+.doodle-float  { animation: doodleFloat  4s ease-in-out infinite; }
+.doodle-wobble { animation: doodleWobble 5s ease-in-out infinite; }
+.doodle-spin   { animation: doodleSpin   12s linear infinite; }
+.doodle-pop    { animation: doodlePop    0.6s cubic-bezier(0.22,1,0.36,1) both; }
+
+/* ── Wavy doodle underline ── */
+.doodle-underline {
+  text-decoration: underline wavy var(--accent) 2px;
+  text-underline-offset: 5px;
+}
+
+/* ── Ink divider ── */
+.ink-divider {
+  border: none;
+  border-top: 2px solid var(--border-light);
+}
+
+.planner-frame {
+  background:
+    linear-gradient(90deg, transparent calc(70% - 1px), rgba(0,0,0,0.08) calc(70% - 1px), rgba(0,0,0,0.08) 70%, transparent 70%),
+    linear-gradient(var(--ink) 1px, transparent 1px) 0 68px / 100% 34px,
+    var(--bg);
+}
+
+.planner-topbar {
+  background: color-mix(in srgb, var(--bg) 94%, white);
+  border-bottom: 1px solid var(--border-light);
+  backdrop-filter: blur(12px);
+}
+
+.planner-sidebar {
+  background:
+    radial-gradient(circle at 18px 18px, rgba(26,26,26,0.045) 1.5px, transparent 2px) 0 0 / 28px 28px,
+    color-mix(in srgb, var(--bg) 94%, white);
+  border-right: 1px solid var(--border-light);
+}
+
+.planner-control-zone {
+  background:
+    linear-gradient(var(--ink) 1px, transparent 1px) 0 14px / 100% 32px,
+    color-mix(in srgb, var(--bg) 96%, white);
+}
+
+.planner-detail {
+  width: 100%;
+  max-width: 440px;
+  margin-inline: auto;
+}
+
+.planner-calendar-cell {
+  height: clamp(54px, 6.1vw, 86px);
+}
+
+.planner-calendar-board {
+  position: relative;
+  padding: clamp(18px, 2.3vw, 32px);
+  border: 0;
+  background:
+    linear-gradient(90deg, rgba(26,26,26,0.045) 1px, transparent 1px) 0 0 / 25% 100%,
+    linear-gradient(rgba(26,26,26,0.045) 1px, transparent 1px) 0 0 / 100% 25%,
+    rgba(255,255,255,0.18);
+}
+
+.planner-calendar-board::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 8px;
+  border-top: 2px dashed rgba(26,26,26,0.13);
+  transform: rotate(-0.25deg);
+}
+
+.planner-calendar-board::after {
+  content: "";
+  position: absolute;
+  left: 2%;
+  right: 3%;
+  bottom: 4px;
+  border-bottom: 2px dashed rgba(26,26,26,0.13);
+  transform: rotate(0.18deg);
+}
+
+.planner-calendar-board button {
+  border-radius: 16px 13px 18px 12px !important;
+}
+
+.planner-calendar-board button:not(:disabled) {
+  transform: rotate(-0.25deg);
+}
+
+.planner-calendar-board .grid > div:nth-child(3n) button:not(:disabled) {
+  transform: rotate(0.35deg);
+}
+
+.planner-calendar-board .grid > div:nth-child(4n) button:not(:disabled) {
+  transform: rotate(-0.45deg);
+}
+
+.planner-calendar-board button:not(:disabled)::before {
+  content: "";
+  position: absolute;
+  inset: 4px 8px auto 8px;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.12);
+  transform: rotate(-2deg);
+}
+
+.doodle-action {
+  position: relative;
+  border: 2px solid rgba(22,163,74,0.34);
+  border-radius: 14px 18px 12px 16px;
+  box-shadow: 3px 4px 0 rgba(22,163,74,0.18);
+  transform: rotate(-0.25deg);
+}
+
+.doodle-action::after {
+  content: "";
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 8px;
+  border-bottom: 2px solid rgba(22,163,74,0.2);
+  transform: rotate(-0.6deg);
+}
+
+.doodle-action.is-muted {
+  border-color: var(--border-light);
+  box-shadow: 3px 4px 0 rgba(26,26,26,0.09);
+  transform: rotate(0.35deg);
+}
+
+.doodle-action.is-muted::after {
+  border-bottom-color: rgba(26,26,26,0.12);
+}
+
+.doodle-date-note {
+  position: relative;
+  background: rgba(255,255,255,0.74);
+  border: 3px solid var(--border);
+  border-radius: 18px 24px 16px 22px;
+  box-shadow: 5px 7px 0 var(--border);
+  transform: rotate(-0.35deg);
+}
+
+.doodle-date-note::after {
+  content: "";
+  position: absolute;
+  inset: 7px -7px -7px 8px;
+  border-right: 2px solid rgba(26,26,26,0.22);
+  border-bottom: 2px solid rgba(26,26,26,0.22);
+  border-radius: 16px 22px 18px 20px;
+  pointer-events: none;
+}
+
+.doodle-date-note::before {
+  content: "";
+  position: absolute;
+  width: 78px;
+  height: 22px;
+  left: 28px;
+  top: -14px;
+  background: rgba(254,240,138,0.72);
+  border: 1px solid rgba(146,64,14,0.18);
+  transform: rotate(-3deg);
+}
+
+.doodle-note {
+  position: relative;
+  padding: 18px 16px 20px;
+  background:
+    linear-gradient(transparent 31px, rgba(26,26,26,0.055) 32px) 0 0 / 100% 32px,
+    rgba(255,255,255,0.22);
+  border: 2px solid rgba(26,26,26,0.15);
+  border-radius: 14px 11px 16px 12px;
+  box-shadow: 4px 5px 0 rgba(26,26,26,0.06);
+}
+
+.doodle-note::before {
+  content: "";
+  position: absolute;
+  width: 54px;
+  height: 18px;
+  right: 18px;
+  top: -10px;
+  background: rgba(220,252,231,0.62);
+  transform: rotate(4deg);
+}
+
+.doodle-note::after {
+  content: "";
+  position: absolute;
+  left: 11px;
+  right: 13px;
+  bottom: -8px;
+  border-bottom: 2px dashed rgba(26,26,26,0.16);
+  transform: rotate(-0.7deg);
+}
+
+.rotate-note-a {
+  transform: rotate(0.25deg);
+}
+
+.rotate-note-b {
+  transform: rotate(-0.22deg);
+}
+
+.doodle-section-title {
+  display: inline-block;
+  position: relative;
+}
+
+.doodle-section-title::after {
+  content: "";
+  position: absolute;
+  left: -3px;
+  right: -6px;
+  bottom: -4px;
+  height: 6px;
+  background: rgba(22,163,74,0.14);
+  transform: rotate(-1deg);
+  z-index: -1;
+}
+
+.doodle-period {
+  border-width: 2px;
+  border-style: solid;
+  border-radius: 13px 10px 15px 11px;
+  position: relative;
+  overflow: hidden;
+  animation: selectCardBoil 1.45s steps(3, end) infinite;
+}
+
+.doodle-period::before {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 40px;
+  top: 9px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.2);
+  transform: rotate(-1deg);
+  animation: sketchGhost 1.2s steps(3, end) infinite;
+}
+
+.doodle-period::after {
+  content: "";
+  position: absolute;
+  inset: 5px 7px;
+  pointer-events: none;
+  border: 1px dashed rgba(26,26,26,0.13);
+  border-radius: 11px 8px 13px 9px;
+  opacity: 0.45;
+  animation: sketchGhost 1.55s steps(3, end) infinite reverse;
+}
+
+.doodle-period.is-selected {
+  animation:
+    selectCardBoil 1.25s steps(3, end) infinite,
+    selectedCardPulse 1.8s ease-in-out infinite;
+}
+
+.doodle-period.is-selected::after {
+  border-color: rgba(22,163,74,0.32);
+  opacity: 0.72;
+}
+
+.doodle-period:nth-of-type(2) {
+  transform: rotate(0.2deg);
+}
+
+.doodle-period:nth-of-type(3) {
+  transform: rotate(-0.18deg);
+}
+
+@keyframes selectCardBoil {
+  0%, 100% { transform: translate(0, 0) rotate(-0.08deg); filter: contrast(1); }
+  33%      { transform: translate(0.8px, -0.5px) rotate(0.16deg); filter: contrast(1.04); }
+  66%      { transform: translate(-0.6px, 0.4px) rotate(-0.14deg); filter: contrast(0.99); }
+}
+
+@keyframes selectedCardPulse {
+  0%, 100% { box-shadow: 3px 3px 0 rgba(22,163,74,0.16); }
+  50%      { box-shadow: 5px 5px 0 rgba(22,163,74,0.26); }
+}
+
+.paper-panel {
+  background: rgba(255,255,255,0.92);
+  border: 1.5px solid var(--border-light);
+  border-radius: 8px;
+  box-shadow: 0 14px 35px rgba(26,26,26,0.06);
+}
+
+.ink-panel {
+  background: var(--surface);
+  border: 3px solid var(--border);
+  border-radius: 18px;
+  box-shadow: 5px 5px 0 var(--border);
+}
+
+.soft-button {
+  border: 1.5px solid var(--border-light);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.72);
+  color: var(--muted);
+}
+
+.soft-button:hover {
+  border-color: rgba(0,0,0,0.24);
+  color: var(--text);
+}
+
+.save-dock {
+  background: color-mix(in srgb, var(--bg) 95%, white);
+  border-top: 1px solid var(--border-light);
+  backdrop-filter: blur(12px);
+}
+
+.doodle-matrix-wrap {
+  overflow-x: auto;
+  padding: 14px;
+  background: var(--surface);
+  border: 2.5px solid var(--border);
+  border-radius: 14px 20px 16px 12px;
+  box-shadow: 4px 4px 0 var(--border);
+}
+
+.doodle-matrix {
+  display: grid;
+  min-width: 680px;
+  gap: 6px;
+}
+
+.doodle-matrix-corner,
+.doodle-matrix-option,
+.doodle-matrix-person,
+.doodle-matrix-cell {
+  position: relative;
+  border: 1.5px solid var(--border-light);
+  border-radius: 10px 13px 11px 9px;
+}
+
+.doodle-matrix-corner {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  display: flex;
+  align-items: end;
+  min-height: 112px;
+  padding: 10px;
+  background: var(--surface);
+  font-family: var(--font-caveat), cursive;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.doodle-matrix-option {
+  min-height: 112px;
+  padding: 9px 8px;
+  text-align: center;
+  background:
+    linear-gradient(transparent 27px, rgba(26,26,26,0.045) 28px) 0 0 / 100% 28px,
+    rgba(255,255,255,0.76);
+  animation:
+    sketchIn 0.5s cubic-bezier(0.22,1,0.36,1) both,
+    lineBoil 0.74s steps(2, end) infinite;
+  animation-delay: var(--doodle-delay, 0s);
+}
+
+.doodle-matrix-option::before,
+.doodle-matrix-person::before,
+.doodle-matrix-cell::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border: 1px solid rgba(26,26,26,0.18);
+  border-radius: inherit;
+  pointer-events: none;
+  animation:
+    roughPass 0.62s cubic-bezier(0.22,1,0.36,1) both,
+    lineBoil 0.66s steps(2, end) infinite;
+  animation-delay: calc(var(--doodle-delay, 0s) + 0.04s), calc(var(--doodle-delay, 0s) + 0.2s);
+}
+
+.doodle-matrix-option::after {
+  content: "";
+  position: absolute;
+  left: 8px;
+  right: 10px;
+  bottom: 8px;
+  border-bottom: 2px dashed rgba(26,26,26,0.12);
+  transform: rotate(-1.2deg) scaleX(0);
+  transform-origin: left;
+  animation: drawUnderline 0.38s ease-out both;
+  animation-delay: calc(var(--doodle-delay, 0s) + 0.2s);
+}
+
+.doodle-matrix-option:nth-child(2n) {
+  transform: rotate(-0.18deg);
+}
+
+.doodle-matrix-option:nth-child(3n) {
+  transform: rotate(0.2deg);
+}
+
+.doodle-matrix-score {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  margin-top: 7px;
+  padding: 2px 6px;
+  border: 1.5px solid rgba(22,163,74,0.24);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--accent-text);
+}
+
+.doodle-matrix-lock,
+.doodle-matrix-locked {
+  display: block;
+  width: 100%;
+  margin-top: 7px;
+  padding: 4px 6px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px 10px 8px 6px;
+  background: var(--text);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.doodle-matrix-lock:disabled {
+  opacity: 0.6;
+}
+
+.doodle-matrix-lock:hover:not(:disabled) {
+  animation: handJitter 0.34s ease-in-out;
+}
+
+.doodle-matrix-locked {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.doodle-matrix-person {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 52px;
+  padding: 8px 10px;
+  background: var(--surface);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  box-shadow: 5px 0 8px rgba(247,244,238,0.86);
+  animation:
+    sketchIn 0.45s cubic-bezier(0.22,1,0.36,1) both,
+    lineBoil 0.82s steps(2, end) infinite;
+  animation-delay: var(--doodle-delay, 0s);
+}
+
+.doodle-matrix-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  overflow: hidden;
+  transition: transform 0.1s ease, background 0.1s ease;
+  animation:
+    sketchIn 0.42s cubic-bezier(0.22,1,0.36,1) both,
+    lineBoil 0.7s steps(2, end) infinite;
+  animation-delay: var(--doodle-delay, 0s);
+}
+
+.doodle-matrix-cell::after {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(96deg, transparent 0 7px, rgba(26,26,26,0.045) 8px 9px, transparent 10px 16px),
+    repeating-linear-gradient(-8deg, transparent 0 12px, rgba(255,255,255,0.42) 13px 14px, transparent 15px 22px);
+  mix-blend-mode: multiply;
+  animation: pencilScratch 0.58s steps(2, end) infinite;
+}
+
+.doodle-matrix-cell:hover {
+  animation: handJitter 0.34s ease-in-out;
+  transform: translateY(-1px) rotate(-0.25deg);
+}
+
+.doodle-matrix-cell span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50% 55% 48% 52%;
+  font-family: var(--font-caveat), cursive;
+  font-size: 19px;
+  font-weight: 800;
+  position: relative;
+  z-index: 1;
+}
+
+.doodle-matrix-cell .is-free {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 2px 2px 0 rgba(22,163,74,0.25);
+  animation:
+    inkPop 0.36s cubic-bezier(0.22,1,0.36,1) both,
+    handJitter 0.62s steps(2, end) infinite;
+  animation-delay: calc(var(--doodle-delay, 0s) + 0.08s);
+}
+
+.doodle-matrix-cell .is-busy {
+  color: var(--muted-2);
+}
+
+@keyframes drawUnderline {
+  from { transform: rotate(-1.2deg) scaleX(0); opacity: 0; }
+  to   { transform: rotate(-1.2deg) scaleX(1); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .doodle-matrix-option,
+  .doodle-matrix-option::before,
+  .doodle-matrix-option::after,
+  .doodle-matrix-person,
+  .doodle-matrix-person::before,
+  .doodle-matrix-cell,
+  .doodle-matrix-cell::before,
+  .doodle-matrix-cell::after,
+  .doodle-matrix-cell .is-free,
+  .doodle-matrix-lock:hover:not(:disabled),
+  .doodle-card,
+  .doodle-card::before,
+  .doodle-card-sm,
+  .doodle-card-sm::before,
+  .btn-stamp,
+  .handdrawn-live,
+  .handdrawn-live > button:first-child::after,
+  .handdrawn-live button:not(:disabled),
+  .doodle-locked-banner,
+  .doodle-locked-banner::before,
+  .doodle-locked-banner::after,
+  .doodle-result-card,
+  .doodle-result-card::before,
+  .doodle-result-card::after,
+  .doodle-slots-panel,
+  .doodle-slots-panel::before,
+  .doodle-slots-panel::after,
+  .doodle-slot-cell,
+  .doodle-slot-cell::after {
+    animation: none;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@media (max-width: 1023px) {
+  .planner-frame {
+    background:
+      linear-gradient(var(--ink) 1px, transparent 1px) 0 64px / 100% 32px,
+      var(--bg);
+  }
+
+  .planner-sidebar {
+    border-right: 0;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .planner-calendar-cell {
+    height: clamp(44px, 12vw, 64px);
+  }
+
+  .planner-control-zone {
+    border-top: 1px solid var(--border-light);
+  }
+
+  .planner-detail {
+    max-width: 720px;
+  }
+
+  .doodle-date-note {
+    transform: rotate(-0.18deg);
+  }
+
+  .rotate-note-a,
+  .rotate-note-b {
+    transform: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .results-main {
+    padding-inline: 12px;
+  }
+
+  .doodle-locked-banner,
+  .doodle-result-card,
+  .doodle-slots-panel {
+    border-width: 2px !important;
+    border-radius: 14px 17px 13px 16px !important;
+    box-shadow: 3px 3px 0 var(--border) !important;
+  }
+
+  .doodle-locked-banner {
+    box-shadow: 3px 3px 0 var(--accent) !important;
+  }
+
+  .doodle-locked-banner {
+    padding: 18px !important;
+  }
+
+  .doodle-result-card {
+    padding: 16px !important;
+  }
+
+  .doodle-slots-panel {
+    margin-inline: -4px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .day-slots-grid {
+    font-size: 12px;
+  }
+
+  .doodle-slot-cell {
+    border-radius: 7px 9px 7px 6px;
+    animation-duration: 0.45s, 2.2s;
+  }
+
+  .doodle-matrix-wrap {
+    padding: 10px;
+    margin-inline: -4px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .doodle-matrix {
+    min-width: 560px;
+    gap: 5px;
+  }
+
+  .doodle-matrix-corner,
+  .doodle-matrix-option {
+    min-height: 96px;
+  }
+
+  .doodle-matrix-person,
+  .doodle-matrix-cell {
+    min-height: 46px;
+  }
+
+  .planner-topbar {
+    align-items: flex-start;
+  }
+
+  .planner-header-actions {
+    gap: 6px;
+  }
+
+  .planner-header-actions a {
+    padding: 8px;
+    font-size: 0;
+  }
+
+  .planner-header-actions svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .planner-quick-actions {
+    display: grid;
+    grid-template-columns: 1fr auto;
+  }
+
+  .doodle-action {
+    min-height: 44px;
+    border-radius: 12px 15px 11px 14px;
+    font-size: 13px;
+  }
+
+  .doodle-action.is-muted {
+    min-width: 88px;
+  }
+
+  .planner-calendar-board {
+    margin-inline: -6px;
+    padding: 18px 8px 14px;
+    background:
+      linear-gradient(90deg, rgba(26,26,26,0.035) 1px, transparent 1px) 0 0 / 25% 100%,
+      linear-gradient(rgba(26,26,26,0.035) 1px, transparent 1px) 0 0 / 100% 25%,
+      rgba(255,255,255,0.08);
+  }
+
+  .planner-calendar-board .font-doodle {
+    font-size: 22px;
+  }
+
+  .planner-calendar-board button {
+    border-radius: 10px 9px 12px 8px !important;
+  }
+
+  .planner-calendar-board button:not(:disabled) {
+    transform: none;
+  }
+
+  .planner-calendar-board .grid > div:nth-child(3n) button:not(:disabled),
+  .planner-calendar-board .grid > div:nth-child(4n) button:not(:disabled) {
+    transform: none;
+  }
+
+  .planner-calendar-cell {
+    height: clamp(42px, 13vw, 56px);
+  }
+
+  .planner-calendar-cell button {
+    font-size: 14px !important;
+  }
+
+  .planner-control-zone {
+    padding-bottom: 96px;
+  }
+
+  .planner-detail {
+    max-width: none;
+  }
+
+  .doodle-date-note {
+    border-width: 2.5px;
+    border-radius: 14px 18px 13px 17px;
+    box-shadow: 4px 5px 0 var(--border);
+    transform: none;
+  }
+
+  .doodle-date-note::before {
+    width: 58px;
+    height: 17px;
+    top: -10px;
+  }
+
+  .doodle-date-note::after {
+    display: none;
+  }
+
+  .doodle-date-note .font-doodle {
+    font-size: 42px !important;
+  }
+
+  .doodle-note {
+    padding: 16px 12px 18px;
+    border-radius: 12px 10px 14px 11px;
+  }
+
+  .doodle-note::before {
+    width: 42px;
+    height: 14px;
+    top: -8px;
+    right: 14px;
+  }
+
+  .doodle-period {
+    gap: 10px;
+    padding: 12px !important;
+  }
+
+  .doodle-period::before {
+    right: 34px;
+  }
+
+  .save-dock {
+    padding: 10px 12px;
+  }
+
+  .planner-save-row {
+    align-items: stretch;
+  }
+
+  .planner-save-row > div {
+    min-width: 0;
+  }
+
+  .planner-save-row p {
+    max-width: 46vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .planner-save-button {
+    min-width: 116px;
+    padding: 12px 18px;
+  }
+}
+
+@media (max-width: 380px) {
+  .planner-calendar-cell {
+    height: 40px;
+  }
+
+  .planner-calendar-cell button {
+    font-size: 13px !important;
+  }
+
+  .planner-calendar-board {
+    padding-inline: 4px;
+  }
+
+  .doodle-action {
+    font-size: 12px;
+  }
+
+  .doodle-action.is-muted {
+    min-width: 76px;
+  }
 }
